@@ -147,6 +147,16 @@ function formatarDataHora(s: string) {
   }
 }
 
+function gerarCodigoEnvioReceita(receitaId: string | number): string {
+  const id = String(receitaId ?? '').trim() || 'SEM-ID';
+  const ts = Date.now().toString(36).toUpperCase();
+  const rand =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID().slice(0, 12).toUpperCase()
+      : Math.random().toString(36).slice(2, 14).toUpperCase();
+  return `RCP-${id}-${ts}-${rand}`;
+}
+
 function diaSemanaShort(s: string) {
   if (!s) return '';
   try {
@@ -300,6 +310,7 @@ export default function AgendamentoMedicamentosPage() {
   // Form: prescrição por receita-medicamento (identificação + intervalo + horários editáveis)
   const [prescricaoForm, setPrescricaoForm] = useState<Record<string, Partial<FormPrescricaoMedicamento>>>({});
   const [savingHorarios, setSavingHorarios] = useState(false);
+  const [savingProntoEnvio, setSavingProntoEnvio] = useState(false);
   const [removingMedicamentoId, setRemovingMedicamentoId] = useState<string | number | null>(null);
   const [removeMedicamentoDialogOpen, setRemoveMedicamentoDialogOpen] = useState(false);
   const [removeMedicamentoTarget, setRemoveMedicamentoTarget] = useState<ReceitaMedicamento | null>(null);
@@ -751,6 +762,37 @@ export default function AgendamentoMedicamentosPage() {
     } finally {
       setSavingHorarios(false);
       setPodeImprimir(true);
+    }
+  };
+
+  const handleMarcarReceitaProntaParaEnvio = async () => {
+    if (!selectedReceitaId) return;
+    if (!allAgendados) {
+      toast.error('Agende todos os itens da receita antes de marcar como pronta para envio.');
+      return;
+    }
+    if (savingHorarios || savingProntoEnvio) return;
+    if (selectedReceita?.pronta_envio) return;
+    setSavingProntoEnvio(true);
+    try {
+      const codigoAtual = String(selectedReceita?.codigo_envio ?? '').trim();
+      const codigo = codigoAtual || gerarCodigoEnvioReceita(selectedReceitaId);
+      await api.put(`/receitas?id=${encodeURIComponent(selectedReceitaId)}`, {
+        pronta_envio: true,
+        codigo_envio: codigo,
+      });
+      setReceitas((prev) =>
+        prev.map((r) =>
+          String(r.id) === String(selectedReceitaId)
+            ? { ...r, pronta_envio: true, codigo_envio: codigo }
+            : r
+        )
+      );
+      toast.success('Receita marcada como pronta para envio.');
+    } catch (e: any) {
+      toast.error(e?.message ?? e?.errorMessage ?? 'Erro ao marcar receita como pronta para envio.');
+    } finally {
+      setSavingProntoEnvio(false);
     }
   };
 
@@ -1344,6 +1386,19 @@ export default function AgendamentoMedicamentosPage() {
               </div>
               {selectedReceitaId && hasMedicamentos && (
                 <div className="mt-4 flex justify-end gap-3">
+                  {allAgendados && podeImprimir && !savingHorarios && (
+                    <Button
+                      variant={selectedReceita?.pronta_envio ? "secondary" : "default"}
+                      onClick={handleMarcarReceitaProntaParaEnvio}
+                      disabled={savingProntoEnvio || savingHorarios || Boolean(selectedReceita?.pronta_envio)}
+                    >
+                      {selectedReceita?.pronta_envio
+                        ? `Pronta para envio${selectedReceita?.codigo_envio ? ` — ${selectedReceita.codigo_envio}` : ''}`
+                        : savingProntoEnvio
+                          ? 'Marcando...'
+                          : 'Pronto para envio'}
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     onClick={() => window.print()}

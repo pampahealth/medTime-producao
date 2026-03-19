@@ -16,6 +16,8 @@ const createSchema = z.object({
   a005_tipo_prescritor: z.string().max(30).optional().nullable(),
   a005_num_notificacao: z.string().max(40).optional().nullable(),
   a005_id_prefeitura: z.string().optional(),
+  a005_pronta_envio: z.boolean().optional().nullable(),
+  a005_codigo_envio: z.string().max(80).optional().nullable(),
 });
 
 const updateSchema = z.object({
@@ -29,6 +31,8 @@ const updateSchema = z.object({
   a005_tipo_prescritor: z.string().max(30).optional().nullable(),
   a005_num_notificacao: z.string().max(40).optional().nullable(),
   a005_id_prefeitura: z.union([z.string().uuid(), z.string(), z.number()]).transform((v) => (v != null ? String(v) : undefined)).optional(),
+  a005_pronta_envio: z.boolean().optional().nullable(),
+  a005_codigo_envio: z.string().max(80).optional().nullable(),
 }).partial();
 
 class ReceitasController {

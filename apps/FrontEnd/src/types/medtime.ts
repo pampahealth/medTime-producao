@@ -76,6 +76,8 @@ export interface Receita {
   tipo_prescritor?: string;
   num_notificacao?: string;
   status: 'ativa' | 'concluida' | 'cancelada';
+  pronta_envio?: boolean;
+  codigo_envio?: string;
   created_at?: string;
   updated_at?: string;
 }

@@ -101,6 +101,8 @@ const RECEITAS_TO_FRONT: FieldMap = {
   a005_tipo_prescritor: "tipo_prescritor",
   a005_num_notificacao: "num_notificacao",
   a005_id_prefeitura: "id_prefeitura",
+  a005_pronta_envio: "pronta_envio",
+  a005_codigo_envio: "codigo_envio",
   a005_created_at: "created_at",
 };
 
@@ -115,6 +117,8 @@ const RECEITAS_TO_BACK: FieldMap = {
   tipo_prescritor: "a005_tipo_prescritor",
   num_notificacao: "a005_num_notificacao",
   id_prefeitura: "a005_id_prefeitura",
+  pronta_envio: "a005_pronta_envio",
+  codigo_envio: "a005_codigo_envio",
 };
 
 const RECEITA_MEDICAMENTOS_TO_FRONT: FieldMap = {

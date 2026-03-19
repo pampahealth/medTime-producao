@@ -70,9 +70,19 @@ CREATE TABLE IF NOT EXISTS medtime.a005_receitas (
   a005_observacao      			TEXT,
   a005_tipo_prescritor 			VARCHAR(30),
   a005_num_notificacao 			VARCHAR(40),
+  -- uso futuro: envio da receita para integrações
+  a005_pronta_envio          BOOLEAN NOT NULL DEFAULT FALSE,
+  a005_codigo_envio          VARCHAR(80),
   a005_created_at      			TIMESTAMPTZ NOT NULL DEFAULT now(),
   a005_id_prefeitura   			UUID NOT NULL REFERENCES medtime.a001_prefeitura(a001_id_prefeitura) ON DELETE CASCADE
 );
+
+-- Colunas opcionais para atualização via medtime (executar se a tabela já existir)
+ALTER TABLE medtime.a005_receitas ADD COLUMN IF NOT EXISTS a005_pronta_envio BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE medtime.a005_receitas ADD COLUMN IF NOT EXISTS a005_codigo_envio VARCHAR(80);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_a005_receitas_codigo_envio
+ON medtime.a005_receitas (a005_codigo_envio)
+WHERE a005_codigo_envio IS NOT NULL AND length(trim(a005_codigo_envio)) > 0;
 
 
 
