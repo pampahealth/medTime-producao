@@ -17,39 +17,47 @@ Monorepo com **FrontEnd** (Next.js) e **ProjetoRotas** (API Express + Supabase) 
 
 Raiz enxuta: só `apps/` (onde ficam as duas aplicações), READMEs e config.
 
-## Quick start
+## Quick start (qualquer maquina)
 
-### Só o FrontEnd (usa API interna / PostgREST)
-
-```bash
-cd apps/FrontEnd
-cp .env.example .env
-# Ajuste POSTGREST_*, JWT_SECRET etc.
-pnpm install && pnpm dev
-```
-
-Abre [http://localhost:3000](http://localhost:3000).
-
-### Só o Backend (ProjetoRotas)
+Pre-requisito unico: Node.js + npm instalados.
 
 ```bash
-cd apps/ProjetoRotas
-cp .env.example .env
-# Ajuste SUPABASE_URL, SUPABASE_ANON_KEY, JWT_SECRET
-pnpm install && pnpm dev
+npm run setup
+npm run dev:all
 ```
 
-API em [http://localhost:3333](http://localhost:3333). Swagger: `http://localhost:3333/api-docs`.
+Esse fluxo:
+- instala dependencias da API e do FrontEnd com `npm ci`;
+- cria automaticamente `apps/FrontEnd/.env.local` e `apps/ProjetoRotas/.env` a partir dos arquivos `.env.example` (se ainda nao existirem);
+- sobe API e FrontEnd juntos.
+
+Endpoints locais:
+- FrontEnd: [http://localhost:3000](http://localhost:3000)
+- API: [http://localhost:3333](http://localhost:3333)
+- Swagger: `http://localhost:3333/api-docs`
+
+## Execucao separada (opcional)
+
+### So FrontEnd
+
+```bash
+npm run dev:front
+```
+
+### So Backend (ProjetoRotas)
+
+```bash
+npm run dev:api
+```
 
 ### Front + Backend sincronizados (proxy)
 
-1. Subir o ProjetoRotas (ver acima).
-2. Em `apps/FrontEnd`, no `.env`:
+1. Em `apps/FrontEnd/.env.local`:
    - `USE_BACKEND_PROXY=true`
    - `API_BACKEND_URL=http://localhost:3333`
-3. Rodar o FrontEnd: `cd apps/FrontEnd && pnpm dev`.
+2. Rode `npm run dev:all`.
 
-Detalhes em [README-SINCRONIZACAO.md](./README-SINCRONIZACAO.md).
+Detalhes extras em [README-SINCRONIZACAO.md](./README-SINCRONIZACAO.md).
 
 ## Variáveis de ambiente
 

@@ -4,9 +4,11 @@
   "private": true,
   "description": "Monorepo: FrontEnd (Next.js) + ProjetoRotas (API)",
   "scripts": {
+    "setup": "./scripts/setup.sh",
     "dev": "npm run dev --prefix apps/FrontEnd",
     "dev:front": "npm run dev --prefix apps/FrontEnd",
     "dev:api": "npm run dev --prefix apps/ProjetoRotas",
+    "dev:all": "./scripts/dev.sh",
     "install:all": "npm install --prefix apps/ProjetoRotas && npm install --legacy-peer-deps --prefix apps/FrontEnd",
     "build": "npm run build --prefix apps/FrontEnd"
   }
