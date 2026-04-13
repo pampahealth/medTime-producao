@@ -147,6 +147,21 @@ function formatarDataHora(s: string) {
   }
 }
 
+function formatarTelefoneExibicao(valor: string | null | undefined) {
+  const bruto = String(valor ?? '').trim();
+  if (!bruto) return '—';
+
+  const digitos = bruto.replace(/\D/g, '');
+  if (digitos.length >= 11) {
+    const area = digitos.slice(0, 2);
+    const prefixo = digitos.slice(2, 7);
+    const sufixo = digitos.slice(7, 11);
+    return `(${area}) ${prefixo} - ${sufixo}`;
+  }
+
+  return bruto;
+}
+
 function gerarCodigoEnvioReceita(receitaId: string | number): string {
   const id = String(receitaId ?? '').trim() || 'SEM-ID';
   const ts = Date.now().toString(36).toUpperCase();
@@ -393,6 +408,8 @@ export default function AgendamentoMedicamentosPage() {
   const selectedReceita = receitas.find((r) => String(r.id) === selectedReceitaId);
   const selectedPaciente = selectedReceita ? pacientes.find((p) => String(p.id) === String(selectedReceita.id_paciente)) : null;
   const selectedPacienteCelular = selectedPaciente ? celularesPorPaciente[selectedPaciente.id] : undefined;
+  const telefonePaciente = String(selectedPacienteCelular?.numero_contato ?? selectedPaciente?.celular ?? '').trim();
+  const pacienteTemTelefone = telefonePaciente.length > 0;
   const getMedicoNome = (id?: number | string | null) => {
     if (id == null || id === '') return '—';
     const m = medicos.find((x) => String(x.id) === String(id));
@@ -735,6 +752,10 @@ export default function AgendamentoMedicamentosPage() {
 
   const handleSalvarReceita = async () => {
     if (!selectedReceitaId || !hasMedicamentos) return;
+    if (!pacienteTemTelefone) {
+      toast.error('Para salvar a receita, cadastre um telefone do paciente.');
+      return;
+    }
     setSavingHorarios(true);
     setPodeImprimir(false);
     try {
@@ -1031,6 +1052,91 @@ export default function AgendamentoMedicamentosPage() {
           </Card>
         )}
 
+        {selectedReceitaId && !loadingReceita && (
+          <Card className="overflow-hidden border rounded-lg shadow-sm bg-card">
+            <CardHeader className="border-b bg-muted/20">
+              <div className="space-y-2">
+                {(selectedPaciente || selectedReceita) && (
+                  <div className="flex flex-col gap-1">
+                    <div className="flex flex-wrap items-center gap-x-8 gap-y-1">
+                      {selectedPaciente && (
+                        <>
+                          <User className="h-5 w-5 text-muted-foreground shrink-0" />
+                          <span className="text-lg md:text-xl font-semibold leading-none">
+                            {selectedPaciente.nome}
+                          </span>
+                          {selectedPaciente?.cartao_sus != null && selectedPaciente.cartao_sus !== '' && (
+                            <span className="text-xs sm:text-sm text-muted-foreground leading-none">
+                              Cartão SUS: {selectedPaciente.cartao_sus}
+                            </span>
+                          )}
+                          {(selectedPacienteCelular?.numero_contato || selectedPaciente?.celular || selectedReceita) && (
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                              <span className="text-xs sm:text-sm text-muted-foreground leading-none">
+                                Telefone: {formatarTelefoneExibicao(selectedPacienteCelular?.numero_contato ?? selectedPaciente?.celular)}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-primary"
+                                onClick={() => {
+                                  setEditingCelular(selectedPacienteCelular ?? null);
+                                  setNovoNumeroContato(
+                                    selectedPacienteCelular?.numero_contato ?? selectedPaciente?.celular ?? ''
+                                  );
+                                  setCelularDialogOpen(true);
+                                }}
+                                aria-label="Editar telefone do paciente"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                              {selectedReceita && (
+                                <span className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground leading-none">
+                                  <Calendar className="h-4 w-4 shrink-0" />
+                                  Receita: {formatarData(selectedReceita.data_receita)}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {selectedReceita && (
+                        <div className="ml-auto flex items-center">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-10 w-10 border-border/70 text-foreground hover:text-primary"
+                            onClick={() => setAdicionarMedicamentoDialogOpen(true)}
+                            aria-label="Adicionar medicamento à receita"
+                            title="Adicionar medicamento à receita"
+                          >
+                            <Plus className="h-6 w-6" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    {selectedPaciente && !selectedPacienteCelular?.numero_contato && !selectedPaciente?.celular && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-1 h-7 px-2 text-xs w-fit"
+                        onClick={() => {
+                          setEditingCelular(null);
+                          setNovoNumeroContato('');
+                          setCelularDialogOpen(true);
+                        }}
+                      >
+                        <Smartphone className="h-3 w-3 mr-1" />
+                        Cadastrar telefone do paciente
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+          </Card>
+        )}
+
         {selectedReceitaId && !loadingReceita && !hasMedicamentos && (
           <Card className="border-destructive/50 bg-destructive/5">
             <CardHeader>
@@ -1107,86 +1213,6 @@ export default function AgendamentoMedicamentosPage() {
 
         {selectedReceitaId && !loadingReceita && hasMedicamentos && allAgendados && (
           <Card className="overflow-hidden border rounded-lg shadow-sm bg-card">
-            <CardHeader className="border-b bg-muted/20">
-              <div className="space-y-2">
-                {(selectedPaciente || selectedReceita) && (
-                  <div className="flex flex-col gap-1">
-                    <div className="flex flex-wrap items-center gap-x-8 gap-y-1">
-                      {selectedPaciente && (
-                        <>
-                          <User className="h-5 w-5 text-muted-foreground shrink-0" />
-                          <span className="text-lg md:text-xl font-semibold leading-none">
-                            {selectedPaciente.nome}
-                          </span>
-                          {selectedPaciente?.cartao_sus != null && selectedPaciente.cartao_sus !== '' && (
-                            <span className="text-xs sm:text-sm text-muted-foreground leading-none">
-                              Cartão SUS: {selectedPaciente.cartao_sus}
-                            </span>
-                          )}
-                          {(selectedPacienteCelular?.numero_contato || selectedPaciente?.celular || selectedReceita) && (
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                              <span className="text-xs sm:text-sm text-muted-foreground leading-none">
-                                Telefone: {selectedPacienteCelular?.numero_contato ?? selectedPaciente?.celular}
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-muted-foreground hover:text-primary"
-                                onClick={() => {
-                                  setEditingCelular(selectedPacienteCelular ?? null);
-                                  setNovoNumeroContato(
-                                    selectedPacienteCelular?.numero_contato ?? selectedPaciente?.celular ?? ''
-                                  );
-                                  setCelularDialogOpen(true);
-                                }}
-                                aria-label="Editar telefone do paciente"
-                              >
-                                <Edit2 className="h-3 w-3" />
-                              </Button>
-                              {selectedReceita && (
-                                <span className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground leading-none">
-                                  <Calendar className="h-4 w-4 shrink-0" />
-                                  Receita: {formatarData(selectedReceita.data_receita)}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </>
-                      )}
-                      {selectedReceita && (
-                        <div className="ml-auto flex items-center">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-10 w-10 border-border/70 text-foreground hover:text-primary"
-                            onClick={() => setAdicionarMedicamentoDialogOpen(true)}
-                            aria-label="Adicionar medicamento à receita"
-                            title="Adicionar medicamento à receita"
-                          >
-                            <Plus className="h-6 w-6" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                    {selectedPaciente && !selectedPacienteCelular?.numero_contato && !selectedPaciente?.celular && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-1 h-7 px-2 text-xs w-fit"
-                        onClick={() => {
-                          setEditingCelular(null);
-                          setNovoNumeroContato('');
-                          setCelularDialogOpen(true);
-                        }}
-                      >
-                        <Smartphone className="h-3 w-3 mr-1" />
-                        Cadastrar telefone do paciente
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </CardHeader>
             <CardContent className="pt-6 pb-6">
               <div className="space-y-6">
                 {medicamentosAgendados.map((rm, index) => {
@@ -1408,7 +1434,7 @@ export default function AgendamentoMedicamentosPage() {
                   </Button>
                   <Button
                     onClick={handleSalvarReceita}
-                    disabled={savingHorarios}
+                    disabled={savingHorarios || !pacienteTemTelefone}
                   >
                     {savingHorarios ? 'Salvando...' : 'Salvar edição da receita'}
                   </Button>
@@ -1634,7 +1660,7 @@ export default function AgendamentoMedicamentosPage() {
                   </Button>
                   <Button
                     onClick={handleSalvarReceita}
-                    disabled={savingHorarios}
+                    disabled={savingHorarios || !pacienteTemTelefone}
                   >
                     {savingHorarios ? 'Salvando...' : 'Salvar edição da receita'}
                   </Button>
@@ -1870,7 +1896,7 @@ export default function AgendamentoMedicamentosPage() {
                   </Button>
                   <Button
                     onClick={handleSalvarReceita}
-                    disabled={savingHorarios}
+                    disabled={savingHorarios || !pacienteTemTelefone}
                   >
                     {savingHorarios ? 'Salvando...' : 'Salvar edição da receita'}
                   </Button>
