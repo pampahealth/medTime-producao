@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.receitasRoutes = void 0;
+const express_1 = require("express");
+const receitas_repository_1 = require("../../application/repositories/receitas.repository");
+const receitas_service_1 = require("../../application/services/receitas.service");
+const receitas_controller_1 = require("../controllers/receitas.controller");
+const router = (0, express_1.Router)();
+exports.receitasRoutes = router;
+const controller = new receitas_controller_1.ReceitasController(new receitas_service_1.ReceitasService(new receitas_repository_1.ReceitasRepository()));
+router.get("/receitas/por-data", (req, res, next) => controller.porData(req, res).catch(next));
+router.get("/receitas/por-paciente", (req, res, next) => controller.porNomePaciente(req, res).catch(next));
+router.get("/receitas/por-cartao-sus", (req, res, next) => controller.porCartaoSus(req, res).catch(next));
+router.get("/coleta/completa", (req, res, next) => controller.coletaCompleta(req, res).catch(next));

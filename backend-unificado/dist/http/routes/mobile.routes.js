@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.mobileRoutes = void 0;
+const express_1 = require("express");
+const mobile_controller_1 = require("../controllers/mobile.controller");
+const router = (0, express_1.Router)();
+exports.mobileRoutes = router;
+const controller = new mobile_controller_1.MobileController();
+router.post("/mobile/receitas", (req, res) => controller.postReceitas(req, res));
+router.get("/mobile/receitas/ultimo", (req, res) => controller.getUltimo(req, res));
+router.get("/mobile/paciente/ultimo", (req, res) => controller.getUltimoPaciente(req, res));

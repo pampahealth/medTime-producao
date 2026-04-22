@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sessionsRoutes = void 0;
+const express_1 = require("express");
+const session_service_1 = require("../../application/services/session.service");
+const sessions_controller_1 = require("../controllers/sessions.controller");
+const router = (0, express_1.Router)();
+exports.sessionsRoutes = router;
+const controller = new sessions_controller_1.SessionsController(new session_service_1.SessionService());
+router.post("/sessions", (req, res, next) => controller.login(req, res).catch(next));

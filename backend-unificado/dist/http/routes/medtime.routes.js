@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.medtimeRoutes = void 0;
+const express_1 = require("express");
+const medtime_crud_service_1 = require("../../application/services/medtime-crud.service");
+const medtime_controller_1 = require("../controllers/medtime.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const router = (0, express_1.Router)();
+exports.medtimeRoutes = router;
+const controller = new medtime_controller_1.MedtimeController(new medtime_crud_service_1.MedtimeCrudService());
+router.use(auth_middleware_1.authMiddleware);
+router.get("/:resource", (req, res, next) => controller.list(req, res).catch(next));
+router.get("/:resource/:id", (req, res, next) => controller.getById(req, res).catch(next));
+router.post("/:resource", (req, res, next) => controller.create(req, res).catch(next));
+router.put("/:resource/:id", (req, res, next) => controller.update(req, res).catch(next));
+router.delete("/:resource/:id", (req, res, next) => controller.remove(req, res).catch(next));

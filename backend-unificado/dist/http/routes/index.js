@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.appRoutes = void 0;
+const express_1 = require("express");
+const medtime_routes_1 = require("./medtime.routes");
+const mobile_routes_1 = require("./mobile.routes");
+const receitas_routes_1 = require("./receitas.routes");
+const sessions_routes_1 = require("./sessions.routes");
+const v2_routes_1 = require("./v2.routes");
+const router = (0, express_1.Router)();
+exports.appRoutes = router;
+router.use(sessions_routes_1.sessionsRoutes);
+router.use("/api", receitas_routes_1.receitasRoutes);
+router.use("/api", mobile_routes_1.mobileRoutes);
+router.use("/api/v2", v2_routes_1.v2Routes);
+router.use("/medtime", medtime_routes_1.medtimeRoutes);

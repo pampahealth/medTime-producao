@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.v2Routes = void 0;
+const express_1 = require("express");
+const catalogo_service_1 = require("../../application/services/catalogo.service");
+const horarios_repository_1 = require("../../application/repositories/horarios.repository");
+const medicamentos_repository_1 = require("../../application/repositories/medicamentos.repository");
+const pacientes_repository_1 = require("../../application/repositories/pacientes.repository");
+const v2_controller_1 = require("../controllers/v2.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const router = (0, express_1.Router)();
+exports.v2Routes = router;
+const controller = new v2_controller_1.V2Controller(new catalogo_service_1.CatalogoService(new pacientes_repository_1.PacientesRepository(), new medicamentos_repository_1.MedicamentosRepository(), new horarios_repository_1.HorariosRepository()));
+router.use(auth_middleware_1.authMiddleware);
+router.get("/resumo-operacional", (req, res, next) => controller.resumo(req, res).catch(next));
